@@ -25,25 +25,21 @@ def encrypt(plainText : str, matrixKeyword : str, vocabulary = "ABCDEFGHIJKLMNOP
   if len(plainText) % n != 0:
     plainText += "X" * (n - (len(plainText) % n))
   
-  matrixResult = []
   # Process text in blocks of size n
   for i in range(0, len(plainText), n):
     block = plainText[i:i+n]
     # Convert block to numbers
     blockNumbers = [vocabulary.index(char) for char in block]
-    matrixResult.append(blockNumbers)
-  
-  matrixResultMultiplied = []
-  # multiply matrix by matrixResult
-  matrixResultMultiplied = matrix_multiplication(matrixResult, matrix)
-  # mod
-  for i in range(len(matrixResultMultiplied)):
-    matrixResultMultiplied[i] = [x % len(vocabulary) for x in matrixResultMultiplied[i]]
-
-  # convert int to letter and append to result.
-  for row in matrixResultMultiplied:
-    for num in row:
-      result += vocabulary[num]
+    
+    # Convert to column vector for matrix multiplication
+    blockVector = [[num] for num in blockNumbers]
+    
+    # Multiply matrix by block vector (key * plaintext_block)
+    encryptedBlock = matrix_multiplication(matrix, blockVector)
+    
+    # Apply modulo and convert back to letters
+    for j in range(n):
+      result += vocabulary[encryptedBlock[j][0] % len(vocabulary)]
   return result
 
 def decrypt(cipherText : str, matrixKeyword : str, vocabulary = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"):
@@ -58,24 +54,21 @@ def decrypt(cipherText : str, matrixKeyword : str, vocabulary = "ABCDEFGHIJKLMNO
   inverse = find_modular_inverse(matrix, len(vocabulary))
   result = ""
   
-  matrixResult = []
   # Process text in blocks of size n
   for i in range(0, len(cipherText), n):
     block = cipherText[i:i+n]
     # Convert block to numbers
     blockNumbers = [vocabulary.index(char) for char in block]
-    matrixResult.append(blockNumbers)
-
-  matrixResultMultiplied = []
-  # multiply result by inverse
-  matrixResultMultiplied = matrix_multiplication(matrixResult, inverse)
-  # mod
-  for i in range(len(matrixResultMultiplied)):
-    matrixResultMultiplied[i] = [x % len(vocabulary) for x in matrixResultMultiplied[i]]
-  # convert int to letter and append to result.
-  for row in matrixResultMultiplied:
-    for num in row:
-      result += vocabulary[num]
+    
+    # Convert to column vector for matrix multiplication
+    blockVector = [[num] for num in blockNumbers]
+    
+    # Multiply inverse matrix by block vector (inverse_key * cipher_block)
+    decryptedBlock = matrix_multiplication(inverse, blockVector)
+    
+    # Apply modulo and convert back to letters
+    for j in range(n):
+      result += vocabulary[decryptedBlock[j][0] % len(vocabulary)]
   return result
 
 
@@ -144,7 +137,8 @@ def find_modular_inverse(matrix, mod):
   
   adjA = find_adjugate(matrix)
 
-  inverse = x * adjA
+  # Multiply each element of the adjugate by the determinant inverse
+  inverse = [[elem * x for elem in row] for row in adjA]
   # Make modulate of inverse in base mod
   inverse = [[elem % mod for elem in row] for row in inverse]
 
