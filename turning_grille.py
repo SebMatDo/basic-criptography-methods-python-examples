@@ -157,7 +157,7 @@ def main():
 	matrix_size = int(input("Enter the size (n) of the square matrix (n x n): "))
 	mode = input("Enter E for encryption or D for decryption: ").upper()
 	elec: str = input("Put R to rotate right put L to rotate left: ").upper()
-	grilla: str = input("Put grill as a list of coordinates ex. [[0,2],[2,0]]: ")
+	grilla: str = input("Put grill as a list of coordinates ex. [[0,2],[2,0]]: ").replace(" ", "")
 	
 	if mode == "D":
 		cipherTex = input("Put cipher text here: ").upper()
